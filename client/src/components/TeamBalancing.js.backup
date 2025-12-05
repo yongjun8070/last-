@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Target, RefreshCw, ArrowLeftRight, X } from 'lucide-react';
+import { Zap, Target } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const API_BASE_URL = '/api';
@@ -10,8 +10,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
   const [matchName, setMatchName] = useState('');
   const [message, setMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [matchCount, setMatchCount] = useState(0);
-  const [editingPosition, setEditingPosition] = useState(null); // { team: 'blue'/'red', index: 0 }
 
   const fireConfetti = (isBlueTeam) => {
     const colors = isBlueTeam ? ['#3b82f6', '#60a5fa', '#93c5fd'] : ['#ef4444', '#f87171', '#fca5a5'];
@@ -75,7 +73,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
       if (response.ok && data.blueTeam && data.redTeam) {
         console.log('🎯 밸런싱 결과:', data);
         setBalancedTeams(data);
-        setMatchCount(0);
         setMessage('');
       } else {
         setMessage('❌ ' + (data.error || '팀 밸런싱에 실패했습니다.'));
@@ -97,13 +94,10 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
     setLoading(true);
     
     try {
-      const currentMatchName = matchCount > 0 ? `${matchName} #${matchCount + 1}` : matchName;
-      
       const response = await fetch(`${API_BASE_URL}/matches/result`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchName: currentMatchName,
           blueTeam: balancedTeams.blueTeam,
           redTeam: balancedTeams.redTeam,
           winner
@@ -112,9 +106,11 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setMessage(`✅ ${currentMatchName} 결과가 저장되었습니다!`);
+        setMessage('✅ 경기 결과가 저장되었습니다!');
         fireConfetti(winner === 'blue');
-        setMatchCount(matchCount + 1);
+        setBalancedTeams(null);
+        setSelectedMembers([]);
+        setMatchName('');
         onMatchComplete();
       } else {
         setMessage('❌ ' + (data.error || '경기 저장에 실패했습니다.'));
@@ -125,54 +121,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
     }
     
     setLoading(false);
-  };
-
-  // 포지션 변경 - 스왑 방식
-  const handlePositionChange = (team, index, newPosition) => {
-    const updatedTeams = { ...balancedTeams };
-    const targetTeam = team === 'blue' ? updatedTeams.blueTeam : updatedTeams.redTeam;
-    
-    const currentMember = targetTeam[index];
-    const currentPosition = currentMember.position;
-    
-    // 같은 포지션이면 아무것도 안 함
-    if (currentPosition === newPosition) {
-      setEditingPosition(null);
-      return;
-    }
-    
-    // 같은 팀 내에서 새 포지션을 가진 멤버 찾기
-    const swapTargetIndex = targetTeam.findIndex(member => member.position === newPosition);
-    
-    if (swapTargetIndex !== -1) {
-      // 포지션 스왑
-      targetTeam[swapTargetIndex].position = currentPosition;
-      targetTeam[index].position = newPosition;
-      setMessage(`🔄 ${currentMember.summoner_name}와 ${targetTeam[swapTargetIndex].summoner_name}의 포지션이 교환되었습니다!`);
-    } else {
-      // 비어있는 포지션으로 이동
-      targetTeam[index].position = newPosition;
-      setMessage('');
-    }
-    
-    // 포지션 순서대로 정렬
-    const positionOrder = { 'top': 0, 'jungle': 1, 'mid': 2, 'adc': 3, 'support': 4 };
-    targetTeam.sort((a, b) => positionOrder[a.position] - positionOrder[b.position]);
-    
-    setBalancedTeams(updatedTeams);
-    setEditingPosition(null);
-    setTimeout(() => setMessage(''), 3000);
-  };
-
-  const handleSwapTeams = () => {
-    setBalancedTeams({
-      blueTeam: balancedTeams.redTeam,
-      redTeam: balancedTeams.blueTeam,
-      blueScore: balancedTeams.redScore,
-      redScore: balancedTeams.blueScore,
-      scoreDifference: balancedTeams.scoreDifference
-    });
-    setMessage('🔄 블루팀과 레드팀이 교체되었습니다!');
   };
 
   const getPositionIcon = (position) => {
@@ -199,97 +147,9 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
     return names[pos] || position;
   };
 
-  const positions = ['top', 'jungle', 'mid', 'adc', 'support'];
-
   const filteredMembers = members.filter(m => 
     m.summoner_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // 포지션 선택 모달
-  const PositionModal = ({ team, index, currentPosition, onClose }) => {
-    const targetTeam = team === 'blue' ? balancedTeams.blueTeam : balancedTeams.redTeam;
-    const currentMember = targetTeam[index];
-    
-    // 각 포지션을 사용 중인 멤버 찾기
-    const positionUsers = {};
-    targetTeam.forEach((member, idx) => {
-      if (idx !== index) {
-        positionUsers[member.position] = member.summoner_name;
-      }
-    });
-
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-        <div 
-          className="bg-gray-900 rounded-xl border-2 border-purple-500/50 p-6 max-w-md w-full mx-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-white">포지션 선택</h3>
-              <p className="text-sm text-purple-300 mt-1">
-                {currentMember.summoner_name} - 현재: {getPositionName(currentPosition)}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {positions.map(pos => {
-              const isUsed = positionUsers[pos];
-              const isCurrent = currentPosition === pos;
-              
-              return (
-                <button
-                  key={pos}
-                  onClick={() => handlePositionChange(team, index, pos)}
-                  className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                    isCurrent
-                      ? 'border-green-500 bg-green-600/20'
-                      : isUsed
-                      ? 'border-yellow-500/50 bg-yellow-600/10 hover:bg-yellow-600/30 hover:border-yellow-400 cursor-pointer'
-                      : 'border-purple-500/50 bg-purple-600/10 hover:bg-purple-600/30 hover:border-purple-400 cursor-pointer'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <img 
-                      src={getPositionIcon(pos)} 
-                      alt={getPositionName(pos)}
-                      className="w-12 h-12 object-contain"
-                    />
-                    <span className={`font-semibold text-sm ${
-                      isCurrent ? 'text-green-300' : isUsed ? 'text-yellow-300' : 'text-white'
-                    }`}>
-                      {getPositionName(pos)}
-                    </span>
-                    {isCurrent && (
-                      <span className="text-xs text-green-400 font-medium">현재 선택</span>
-                    )}
-                    {isUsed && !isCurrent && (
-                      <span className="text-xs text-yellow-300 font-medium truncate max-w-full px-1">
-                        {isUsed}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          
-          <div className="mt-4 p-3 bg-blue-600/10 border border-blue-500/30 rounded-lg">
-            <p className="text-sm text-blue-300 text-center">
-              💡 다른 포지션을 클릭하면 해당 멤버와 포지션이 교환됩니다
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -365,16 +225,7 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
       ) : (
         <div className="space-y-6">
           <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">밸런싱 결과</h3>
-              <button
-                onClick={handleSwapTeams}
-                className="flex items-center space-x-2 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 px-4 py-2 rounded-lg text-purple-200 transition-all"
-              >
-                <ArrowLeftRight className="w-4 h-4" />
-                <span>팀 교체</span>
-              </button>
-            </div>
+            <h3 className="text-xl font-bold mb-4 text-white">밸런싱 결과</h3>
             <div className="mb-4 text-center">
               <div className="text-purple-300">
                 점수 차이: <span className="font-bold text-white">{balancedTeams.scoreDifference}</span> 점
@@ -382,7 +233,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 블루팀 */}
               <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
                 <h4 className="text-lg font-bold text-blue-300 mb-3 flex items-center justify-between">
                   <span>🔵 블루팀</span>
@@ -391,24 +241,15 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
                 <div className="space-y-2">
                   {balancedTeams.blueTeam && balancedTeams.blueTeam.map((member, index) => (
                     <div key={member.id || index} className="flex items-center space-x-3 p-2 bg-blue-800/20 rounded">
-                      <button
-                        onClick={() => setEditingPosition({ team: 'blue', index })}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-900/40 hover:bg-blue-900/60 border border-blue-500/50 rounded-lg transition-all cursor-pointer"
-                        title="포지션 변경"
-                      >
-                        <img 
-                          src={getPositionIcon(member.position)} 
-                          alt={getPositionName(member.position)} 
-                          className="w-8 h-8 object-contain" 
-                        />
-                        <span className="text-blue-200 text-sm font-medium">
-                          {getPositionName(member.position)}
-                        </span>
-                      </button>
+                      <img 
+                        src={getPositionIcon(member.position)} 
+                        alt={getPositionName(member.position)} 
+                        className="w-8 h-8 object-contain" 
+                      />
                       <div className="flex-1">
                         <div className="font-semibold text-white">{member.summoner_name}</div>
                         <div className="text-sm text-blue-300">
-                          점수: {member.finalScore || 0}
+                          {getPositionName(member.position)} • 점수: {member.finalScore || 0}
                         </div>
                       </div>
                     </div>
@@ -416,7 +257,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
                 </div>
               </div>
               
-              {/* 레드팀 */}
               <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
                 <h4 className="text-lg font-bold text-red-300 mb-3 flex items-center justify-between">
                   <span>🔴 레드팀</span>
@@ -425,24 +265,15 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
                 <div className="space-y-2">
                   {balancedTeams.redTeam && balancedTeams.redTeam.map((member, index) => (
                     <div key={member.id || index} className="flex items-center space-x-3 p-2 bg-red-800/20 rounded">
-                      <button
-                        onClick={() => setEditingPosition({ team: 'red', index })}
-                        className="flex items-center space-x-2 px-3 py-2 bg-red-900/40 hover:bg-red-900/60 border border-red-500/50 rounded-lg transition-all cursor-pointer"
-                        title="포지션 변경"
-                      >
-                        <img 
-                          src={getPositionIcon(member.position)} 
-                          alt={getPositionName(member.position)} 
-                          className="w-8 h-8 object-contain" 
-                        />
-                        <span className="text-red-200 text-sm font-medium">
-                          {getPositionName(member.position)}
-                        </span>
-                      </button>
+                      <img 
+                        src={getPositionIcon(member.position)} 
+                        alt={getPositionName(member.position)} 
+                        className="w-8 h-8 object-contain" 
+                      />
                       <div className="flex-1">
                         <div className="font-semibold text-white">{member.summoner_name}</div>
                         <div className="text-sm text-red-300">
-                          점수: {member.finalScore || 0}
+                          {getPositionName(member.position)} • 점수: {member.finalScore || 0}
                         </div>
                       </div>
                     </div>
@@ -454,11 +285,6 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
 
           <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6">
             <h3 className="text-xl font-bold mb-4 text-white">경기 결과 입력</h3>
-            {matchCount > 0 && (
-              <div className="mb-4 p-3 bg-purple-600/20 border border-purple-500/30 rounded-lg text-purple-200 text-sm">
-                💡 현재 {matchCount}경기 저장됨. 계속 승패를 기록할 수 있습니다!
-              </div>
-            )}
             <div className="space-y-4">
               <div>
                 <label className="block text-purple-300 text-sm font-medium mb-2">
@@ -488,43 +314,15 @@ function TeamBalancing({ members, onMatchComplete, loading, setLoading }) {
                   🔴 레드팀 승리
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                  onClick={() => setBalancedTeams(null)}
-                  className="bg-gray-600/50 hover:bg-gray-600/70 px-6 py-2 rounded-lg text-white font-medium transition-all duration-200"
-                >
-                  <RefreshCw className="w-4 h-4 inline mr-2" />
-                  다시 밸런싱
-                </button>
-                <button
-                  onClick={() => {
-                    setBalancedTeams(null);
-                    setSelectedMembers([]);
-                    setMatchName('');
-                    setMatchCount(0);
-                  }}
-                  className="bg-red-600/50 hover:bg-red-600/70 px-6 py-2 rounded-lg text-white font-medium transition-all duration-200"
-                >
-                  전체 초기화
-                </button>
-              </div>
+              <button
+                onClick={() => setBalancedTeams(null)}
+                className="w-full bg-gray-600/50 hover:bg-gray-600/70 px-6 py-2 rounded-lg text-white font-medium transition-all duration-200"
+              >
+                다시 밸런싱
+              </button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* 포지션 선택 모달 */}
-      {editingPosition && (
-        <PositionModal
-          team={editingPosition.team}
-          index={editingPosition.index}
-          currentPosition={
-            editingPosition.team === 'blue' 
-              ? balancedTeams.blueTeam[editingPosition.index].position
-              : balancedTeams.redTeam[editingPosition.index].position
-          }
-          onClose={() => setEditingPosition(null)}
-        />
       )}
     </div>
   );

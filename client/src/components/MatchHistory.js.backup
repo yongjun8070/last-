@@ -1,0 +1,128 @@
+import React from 'react';
+import { Swords } from 'lucide-react';
+
+function MatchHistory({ matches = [] }) {
+  const getPositionImage = (position) => {
+    const positionMap = {
+      'top': '/images/positions/top.png',
+      'jungle': '/images/positions/jungle.png',
+      'mid': '/images/positions/mid.png',
+      'adc': '/images/positions/adc.png',
+      'support': '/images/positions/support.png'
+    };
+    return positionMap[position?.toLowerCase()] || '/images/positions/mid.png';
+  };
+
+  // 포지션 순서대로 정렬하는 함수
+  const sortByPosition = (names, positions) => {
+    if (!names || !positions) return { names: names || [], positions: positions || [] };
+    
+    const positionOrder = { 'top': 0, 'jungle': 1, 'mid': 2, 'adc': 3, 'support': 4 };
+    
+    const combined = names.map((name, idx) => ({
+      name: name,
+      position: positions[idx],
+      order: positionOrder[positions[idx]?.toLowerCase()] ?? 999
+    }));
+    
+    combined.sort((a, b) => a.order - b.order);
+    
+    return {
+      names: combined.map(item => item.name),
+      positions: combined.map(item => item.position)
+    };
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
+        <Swords className="w-8 h-8 text-purple-400" />
+        <span>경기 기록</span>
+      </h2>
+      
+      {matches.length === 0 ? (
+        <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-12 text-center">
+          <Swords className="w-16 h-16 text-purple-400 mx-auto mb-4 opacity-50" />
+          <p className="text-purple-300 text-lg">아직 경기 기록이 없습니다.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {matches.map((match) => {
+            const blueSorted = sortByPosition(match.blue_team_names, match.blue_team_positions);
+            const redSorted = sortByPosition(match.red_team_names, match.red_team_positions);
+            
+            return (
+              <div key={match.id} className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6 hover:border-purple-400/50 transition-all duration-200">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{match.match_name || `경기 #${match.id}`}</h3>
+                    <p className="text-purple-300 text-sm">
+                      {new Date(match.match_date).toLocaleString('ko-KR')}
+                    </p>
+                  </div>
+                  <div className={`px-4 py-2 rounded-lg font-semibold ${
+                    match.winner === 'blue' 
+                      ? 'bg-blue-600/30 text-blue-300 border border-blue-500/50' 
+                      : 'bg-red-600/30 text-red-300 border border-red-500/50'
+                  }`}>
+                    {match.winner === 'blue' ? '🔵 블루팀 승리' : '🔴 레드팀 승리'}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className={`rounded-lg p-4 ${
+                    match.winner === 'blue' 
+                      ? 'bg-blue-900/30 border border-blue-500/30' 
+                      : 'bg-blue-900/10 border border-blue-500/10'
+                  }`}>
+                    <h4 className="text-lg font-bold text-blue-300 mb-3">🔵 블루팀</h4>
+                    <div className="space-y-2">
+                      {blueSorted.names.map((name, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-blue-900/20 rounded px-3 py-2">
+                          {blueSorted.positions[idx] && (
+                            <img 
+                              src={getPositionImage(blueSorted.positions[idx])} 
+                              alt={blueSorted.positions[idx]}
+                              className="w-6 h-6 object-contain"
+                              title={blueSorted.positions[idx]?.toUpperCase()}
+                            />
+                          )}
+                          <span className="text-blue-100 font-medium">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className={`rounded-lg p-4 ${
+                    match.winner === 'red' 
+                      ? 'bg-red-900/30 border border-red-500/30' 
+                      : 'bg-red-900/10 border border-red-500/10'
+                  }`}>
+                    <h4 className="text-lg font-bold text-red-300 mb-3">🔴 레드팀</h4>
+                    <div className="space-y-2">
+                      {redSorted.names.map((name, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-red-900/20 rounded px-3 py-2">
+                          {redSorted.positions[idx] && (
+                            <img 
+                              src={getPositionImage(redSorted.positions[idx])} 
+                              alt={redSorted.positions[idx]}
+                              className="w-6 h-6 object-contain"
+                              title={redSorted.positions[idx]?.toUpperCase()}
+                            />
+                          )}
+                          <span className="text-red-100 font-medium">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default MatchHistory;
