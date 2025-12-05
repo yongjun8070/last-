@@ -24,39 +24,20 @@ function CustomTeam() {
   const [bluePositions, setBluePositions] = useState({});
   const [redPositions, setRedPositions] = useState({});
   const [expandedPositionModal, setExpandedPositionModal] = useState(null);
-  const [teamsCreated, setTeamsCreated] = useState(false); // 팀 생성 여부
-  
+  const [teamsCreated, setTeamsCreated] = useState(false);
+
   useEffect(() => {
     fetchMembers();
   }, []);
 
   const fireConfetti = (isBlueTeam) => {
     const colors = isBlueTeam ? ['#3b82f6', '#60a5fa', '#93c5fd'] : ['#ef4444', '#f87171', '#fca5a5'];
-    
     confetti({
-      particleCount: 150,
+      particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
       colors: colors
     });
-    
-    setTimeout(() => {
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { x: 0.2, y: 0.6 },
-        colors: colors
-      });
-    }, 200);
-    
-    setTimeout(() => {
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { x: 0.8, y: 0.6 },
-        colors: colors
-      });
-    }, 400);
   };
 
   const fetchMembers = async () => {
@@ -79,14 +60,14 @@ function CustomTeam() {
       return;
     }
     setBlueTeam([...blueTeam, member]);
-    
+
     if (member.preferred_positions && member.preferred_positions.length > 0) {
       setBluePositions({
         ...bluePositions,
         [member.id]: [member.preferred_positions[0]]
       });
     }
-    
+
     setMessage('');
   };
 
@@ -100,14 +81,14 @@ function CustomTeam() {
       return;
     }
     setRedTeam([...redTeam, member]);
-    
+
     if (member.preferred_positions && member.preferred_positions.length > 0) {
       setRedPositions({
         ...redPositions,
         [member.id]: [member.preferred_positions[0]]
       });
     }
-    
+
     setMessage('');
   };
 
@@ -127,17 +108,17 @@ function CustomTeam() {
 
   const handleBluePositionToggle = (memberId, positionId) => {
     const currentPositions = bluePositions[memberId] || [];
-    
+
     const positionTaken = Object.entries(bluePositions).some(
       ([id, positions]) => id !== String(memberId) && positions.includes(positionId)
     );
-    
+
     if (positionTaken) {
       setMessage('해당 포지션은 이미 다른 멤버가 선택했습니다.');
       setTimeout(() => setMessage(''), 2000);
       return;
     }
-    
+
     if (currentPositions.includes(positionId)) {
       setBluePositions({
         ...bluePositions,
@@ -149,8 +130,7 @@ function CustomTeam() {
         [memberId]: [positionId]
       };
       setBluePositions(newPositions);
-      
-      // 자동 정렬: 포지션 순서대로 팀원 재배치
+
       const posOrder = { 'top': 0, 'jungle': 1, 'mid': 2, 'adc': 3, 'support': 4 };
       const sortedTeam = [...blueTeam].sort((a, b) => {
         const posA = newPositions[a.id]?.[0];
@@ -165,17 +145,17 @@ function CustomTeam() {
 
   const handleRedPositionToggle = (memberId, positionId) => {
     const currentPositions = redPositions[memberId] || [];
-    
+
     const positionTaken = Object.entries(redPositions).some(
       ([id, positions]) => id !== String(memberId) && positions.includes(positionId)
     );
-    
+
     if (positionTaken) {
       setMessage('해당 포지션은 이미 다른 멤버가 선택했습니다.');
       setTimeout(() => setMessage(''), 2000);
       return;
     }
-    
+
     if (currentPositions.includes(positionId)) {
       setRedPositions({
         ...redPositions,
@@ -187,8 +167,7 @@ function CustomTeam() {
         [memberId]: [positionId]
       };
       setRedPositions(newPositions);
-      
-      // 자동 정렬: 포지션 순서대로 팀원 재배치
+
       const posOrder = { 'top': 0, 'jungle': 1, 'mid': 2, 'adc': 3, 'support': 4 };
       const sortedTeam = [...redTeam].sort((a, b) => {
         const posA = newPositions[a.id]?.[0];
@@ -201,7 +180,6 @@ function CustomTeam() {
     }
   };
 
-  // 1단계: 팀 생성 (Discord 알림)
   const createTeams = async () => {
     if (!matchName.trim()) {
       setMessage('경기명을 입력해주세요.');
@@ -211,14 +189,14 @@ function CustomTeam() {
       setMessage('각 팀은 정확히 5명이어야 합니다.');
       return;
     }
-    
-    const blueHasAllPositions = blueTeam.every(m => 
+
+    const blueHasAllPositions = blueTeam.every(m =>
       bluePositions[m.id] && bluePositions[m.id].length > 0
     );
-    const redHasAllPositions = redTeam.every(m => 
+    const redHasAllPositions = redTeam.every(m =>
       redPositions[m.id] && redPositions[m.id].length > 0
     );
-    
+
     if (!blueHasAllPositions || !redHasAllPositions) {
       setMessage('모든 멤버의 포지션을 선택해주세요.');
       return;
@@ -257,7 +235,6 @@ function CustomTeam() {
     }
   };
 
-  // 2단계: 승패 결정 (경기 결과 저장 + Discord 알림)
   const openResultModal = () => {
     if (!teamsCreated) {
       setMessage('먼저 팀을 생성해주세요.');
@@ -328,14 +305,14 @@ function CustomTeam() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-          <Settings className="w-8 h-8 text-purple-400" />
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+          <Settings className="w-8 h-8 text-primary-600" />
           <span>커스텀 팀 구성</span>
         </h2>
         {teamsCreated && (
           <button
             onClick={resetTeams}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition"
           >
             초기화
           </button>
@@ -343,13 +320,13 @@ function CustomTeam() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg ${message.includes('✅') || message.includes('승리') ? 'bg-green-600/20 border border-green-500/30 text-green-300' : 'bg-red-600/20 border border-red-500/30 text-red-300'}`}>
+        <div className={`p-4 rounded-lg ${message.includes('✅') || message.includes('승리') ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
           {message}
         </div>
       )}
 
-      <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6">
-        <label className="block text-purple-300 text-sm font-medium mb-2">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <label className="block text-gray-700 text-sm font-medium mb-2">
           경기명
         </label>
         <input
@@ -357,95 +334,95 @@ function CustomTeam() {
           value={matchName}
           onChange={(e) => setMatchName(e.target.value)}
           disabled={teamsCreated}
-          className="w-full px-4 py-2 bg-black/40 border border-purple-500/50 rounded-lg text-white placeholder-purple-300 focus:border-purple-400 focus:outline-none disabled:opacity-50"
+          className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none disabled:opacity-50 transition"
           placeholder="예: 금요일 내전"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 블루팀 */}
-        <div className="bg-blue-600/10 backdrop-blur-sm rounded-xl border border-blue-500/30 p-6">
-          <h3 className="text-xl font-bold text-blue-400 mb-4">
+        <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
+          <h3 className="text-xl font-bold text-blue-700 mb-4">
             블루팀 ({blueTeam.length}/5)
           </h3>
           <div className="space-y-2">
             {blueTeam.map(member => (
-              <div key={member.id} className="bg-blue-900/30 p-3 rounded-lg">
+              <div key={member.id} className="bg-white p-3 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-semibold">{member.summoner_name}</span>
+                  <span className="text-gray-900 font-semibold">{member.summoner_name}</span>
                   {!teamsCreated && (
                     <button
                       onClick={() => removeFromBlueTeam(member.id)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-red-500 hover:text-red-700 transition"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-                
+
                 <button
                   onClick={() => !teamsCreated && setExpandedPositionModal({ memberId: member.id, team: 'blue' })}
                   disabled={teamsCreated}
-                  className="w-full flex items-center gap-1 px-3 py-2 bg-black/40 hover:bg-blue-900/30 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full flex items-center gap-1 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed border border-gray-200"
                 >
                   {bluePositions[member.id] && bluePositions[member.id].length > 0 ? (
                     <div className="flex gap-1">
                       {bluePositions[member.id].map(posId => {
                         const pos = POSITIONS.find(p => p.id === posId);
                         return pos ? (
-                          <img 
+                          <img
                             key={posId}
-                            src={pos.img} 
-                            alt={pos.name} 
+                            src={pos.img}
+                            alt={pos.name}
                             className="w-5 h-5 object-contain"
                           />
                         ) : null;
                       })}
                     </div>
                   ) : (
-                    <span className="text-blue-300 text-sm">포지션 선택</span>
+                    <span className="text-gray-600 text-sm">포지션 선택</span>
                   )}
                 </button>
               </div>
             ))}
             {[...Array(5 - blueTeam.length)].map((_, i) => (
-              <div key={`empty-blue-${i}`} className="h-20 border-2 border-dashed border-blue-500/30 rounded-lg" />
+              <div key={`empty-blue-${i}`} className="h-20 border-2 border-dashed border-blue-300 rounded-lg" />
             ))}
           </div>
         </div>
 
         {/* 선택 가능한 멤버 */}
         {!teamsCreated && (
-          <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6">
-            <h3 className="text-xl font-bold text-purple-400 mb-4">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
               멤버 선택 ({availableMembers.length}명)
             </h3>
-            
+
             <div className="mb-4">
               <input
                 type="text"
                 placeholder="멤버 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-black/40 border border-purple-500/50 rounded-lg text-white placeholder-purple-300 focus:border-purple-400 focus:outline-none"
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none"
               />
             </div>
-            
+
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {availableMembers.map(member => (
-                <div key={member.id} className="flex items-center justify-between bg-black/40 p-3 rounded-lg">
-                  <span className="text-white">{member.summoner_name}</span>
+                <div key={member.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <span className="text-gray-900 font-medium">{member.summoner_name}</span>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => addToBlueTeam(member)}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm transition-colors"
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition shadow-sm"
                       disabled={blueTeam.length >= 5}
                     >
                       블루
                     </button>
                     <button
                       onClick={() => addToRedTeam(member)}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors"
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition shadow-sm"
                       disabled={redTeam.length >= 5}
                     >
                       레드
@@ -459,13 +436,13 @@ function CustomTeam() {
 
         {/* 팀 생성 후 상태 표시 */}
         {teamsCreated && (
-          <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-sm rounded-xl border-2 border-purple-500/50 p-6 flex flex-col items-center justify-center">
-            <Send className="w-16 h-16 text-purple-400 mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">팀 생성 완료!</h3>
-            <p className="text-purple-300 text-center mb-4">Discord를 확인하세요</p>
+          <div className="bg-gradient-to-br from-primary-100 to-primary-50 rounded-lg border border-primary-300 p-6 flex flex-col items-center justify-center">
+            <Send className="w-16 h-16 text-primary-600 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">팀 생성 완료!</h3>
+            <p className="text-gray-700 text-center mb-4">Discord를 확인하세요</p>
             <button
               onClick={openResultModal}
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-bold transition-all"
+              className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold transition shadow-sm"
             >
               승패 결정하기
             </button>
@@ -473,52 +450,52 @@ function CustomTeam() {
         )}
 
         {/* 레드팀 */}
-        <div className="bg-red-600/10 backdrop-blur-sm rounded-xl border border-red-500/30 p-6">
-          <h3 className="text-xl font-bold text-red-400 mb-4">
+        <div className="bg-red-50 rounded-lg border border-red-200 p-6">
+          <h3 className="text-xl font-bold text-red-700 mb-4">
             레드팀 ({redTeam.length}/5)
           </h3>
           <div className="space-y-2">
             {redTeam.map(member => (
-              <div key={member.id} className="bg-red-900/30 p-3 rounded-lg">
+              <div key={member.id} className="bg-white p-3 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-semibold">{member.summoner_name}</span>
+                  <span className="text-gray-900 font-semibold">{member.summoner_name}</span>
                   {!teamsCreated && (
                     <button
                       onClick={() => removeFromRedTeam(member.id)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-red-500 hover:text-red-700 transition"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-                
+
                 <button
                   onClick={() => !teamsCreated && setExpandedPositionModal({ memberId: member.id, team: 'red' })}
                   disabled={teamsCreated}
-                  className="w-full flex items-center gap-1 px-3 py-2 bg-black/40 hover:bg-red-900/30 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full flex items-center gap-1 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed border border-gray-200"
                 >
                   {redPositions[member.id] && redPositions[member.id].length > 0 ? (
                     <div className="flex gap-1">
                       {redPositions[member.id].map(posId => {
                         const pos = POSITIONS.find(p => p.id === posId);
                         return pos ? (
-                          <img 
+                          <img
                             key={posId}
-                            src={pos.img} 
-                            alt={pos.name} 
+                            src={pos.img}
+                            alt={pos.name}
                             className="w-5 h-5 object-contain"
                           />
                         ) : null;
                       })}
                     </div>
                   ) : (
-                    <span className="text-red-300 text-sm">포지션 선택</span>
+                    <span className="text-gray-600 text-sm">포지션 선택</span>
                   )}
                 </button>
               </div>
             ))}
             {[...Array(5 - redTeam.length)].map((_, i) => (
-              <div key={`empty-red-${i}`} className="h-20 border-2 border-dashed border-red-500/30 rounded-lg" />
+              <div key={`empty-red-${i}`} className="h-20 border-2 border-dashed border-red-300 rounded-lg" />
             ))}
           </div>
         </div>
@@ -529,7 +506,7 @@ function CustomTeam() {
         <button
           onClick={createTeams}
           disabled={blueTeam.length !== 5 || redTeam.length !== 5 || !matchName || loading}
-          className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm flex items-center justify-center gap-2"
         >
           <Send className="w-6 h-6" />
           {loading ? '팀 생성 중...' : '팀 생성하기 (Discord 알림)'}
@@ -538,33 +515,33 @@ function CustomTeam() {
 
       {/* 승패 결정 모달 */}
       {showResultModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-gray-900 to-black border-2 border-purple-500/50 rounded-2xl p-8 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
             <div className="text-center mb-6">
-              <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-white mb-2">승리 팀 선택</h3>
-              <p className="text-purple-300">{matchName}</p>
+              <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">승리 팀 선택</h3>
+              <p className="text-gray-600">{matchName}</p>
             </div>
 
             <div className="space-y-4">
               <button
                 onClick={() => submitResult('blue')}
                 disabled={loading}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-lg transition-colors disabled:opacity-50"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-lg transition shadow-sm disabled:opacity-50"
               >
                 블루팀 승리
               </button>
               <button
                 onClick={() => submitResult('red')}
                 disabled={loading}
-                className="w-full py-4 bg-red-600 hover:bg-red-700 rounded-xl font-bold text-lg transition-colors disabled:opacity-50"
+                className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-lg transition shadow-sm disabled:opacity-50"
               >
                 레드팀 승리
               </button>
               <button
                 onClick={() => setShowResultModal(false)}
                 disabled={loading}
-                className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition"
               >
                 취소
               </button>
@@ -575,29 +552,29 @@ function CustomTeam() {
 
       {/* 포지션 선택 모달 */}
       {expandedPositionModal && (
-        <div 
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setExpandedPositionModal(null)}
         >
-          <div 
-            className="bg-gradient-to-br from-gray-900 to-black border-2 border-purple-500 rounded-2xl p-6 max-w-md"
+          <div
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-bold text-white mb-4 text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">
               {members.find(m => m.id === expandedPositionModal.memberId)?.summoner_name} - 포지션 선택
             </h3>
             <div className="grid grid-cols-5 gap-3 mb-4">
               {POSITIONS.map(pos => {
-                const positions = expandedPositionModal.team === 'blue' 
-                  ? bluePositions 
+                const positions = expandedPositionModal.team === 'blue'
+                  ? bluePositions
                   : redPositions;
                 const isSelected = positions[expandedPositionModal.memberId]?.includes(pos.id);
-                
+
                 const isTaken = Object.entries(positions).some(
-                  ([id, posArray]) => 
+                  ([id, posArray]) =>
                     id !== String(expandedPositionModal.memberId) && posArray?.includes(pos.id)
                 );
-                
+
                 return (
                   <button
                     key={pos.id}
@@ -611,25 +588,25 @@ function CustomTeam() {
                     disabled={isTaken && !isSelected}
                     className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${
                       isSelected
-                        ? 'bg-purple-600 border-2 border-purple-400 scale-110'
+                        ? 'bg-primary-500 border-2 border-primary-600 scale-105'
                         : isTaken
-                        ? 'bg-gray-800 border-2 border-gray-600 opacity-50 cursor-not-allowed'
-                        : 'bg-black/40 border-2 border-transparent hover:bg-purple-900/30 hover:scale-105'
+                        ? 'bg-gray-200 border-2 border-gray-300 opacity-50 cursor-not-allowed'
+                        : 'bg-gray-100 border-2 border-gray-200 hover:bg-gray-200 hover:scale-105'
                     }`}
                   >
-                    <img 
-                      src={pos.img} 
-                      alt={pos.name} 
+                    <img
+                      src={pos.img}
+                      alt={pos.name}
                       className="w-12 h-12 object-contain"
                     />
-                    <span className="text-white text-xs font-medium">{pos.name}</span>
+                    <span className={`text-xs font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>{pos.name}</span>
                   </button>
                 );
               })}
             </div>
             <button
               onClick={() => setExpandedPositionModal(null)}
-              className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
+              className="w-full py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 font-medium transition"
             >
               닫기
             </button>

@@ -25,7 +25,7 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
 
     setLoading(true);
     setMessage('');
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/members`, {
         method: 'POST',
@@ -34,7 +34,7 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setMessage('✅ 멤버가 성공적으로 추가되었습니다!');
         setFormData({ summonerName: '', tagLine: '' });
@@ -46,7 +46,7 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
     } catch (error) {
       setMessage('❌ 서버 오류가 발생했습니다.');
     }
-    
+
     setLoading(false);
   };
 
@@ -56,14 +56,14 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
     }
 
     setLoading(true);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/members/${memberId}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.success) {
         setMessage(`✅ ${data.message}`);
         onRefresh();
@@ -73,28 +73,28 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
     } catch (error) {
       setMessage('❌ 서버 오류가 발생했습니다.');
     }
-    
+
     setLoading(false);
   };
 
   const handlePositionToggle = async (memberId, positionId) => {
     const member = members.find(m => m.id === memberId);
     const currentPositions = member.preferred_positions || [];
-    
+
     let newPositions;
     if (currentPositions.includes(positionId)) {
       newPositions = currentPositions.filter(p => p !== positionId);
     } else {
       newPositions = [...currentPositions, positionId];
     }
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/members/${memberId}/positions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ positions: newPositions })
       });
-      
+
       if (response.ok) {
         onRefresh();
       }
@@ -106,21 +106,21 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
   const handleAvoidedPositionToggle = async (memberId, positionId) => {
     const member = members.find(m => m.id === memberId);
     const currentAvoided = member.avoided_positions || [];
-    
+
     let newAvoided;
     if (currentAvoided.includes(positionId)) {
       newAvoided = [];
     } else {
       newAvoided = [positionId];
     }
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/members/${memberId}/avoided-positions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ positions: newAvoided })
       });
-      
+
       if (response.ok) {
         onRefresh();
       }
@@ -138,14 +138,14 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
 
   const getTierColor = (tier) => {
     const colors = {
-      'CHALLENGER': 'text-yellow-300',
-      'GRANDMASTER': 'text-red-400',
-      'MASTER': 'text-purple-400',
-      'DIAMOND': 'text-blue-400',
-      'EMERALD': 'text-green-400',
-      'PLATINUM': 'text-teal-400',
+      'CHALLENGER': 'text-yellow-600',
+      'GRANDMASTER': 'text-red-500',
+      'MASTER': 'text-purple-600',
+      'DIAMOND': 'text-blue-500',
+      'EMERALD': 'text-green-500',
+      'PLATINUM': 'text-teal-500',
       'GOLD': 'text-yellow-500',
-      'SILVER': 'text-gray-400',
+      'SILVER': 'text-gray-500',
       'BRONZE': 'text-orange-600',
       'IRON': 'text-gray-600',
       'UNRANKED': 'text-gray-500'
@@ -156,16 +156,16 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-          <Users className="w-8 h-8 text-blue-400" />
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+          <Users className="w-8 h-8 text-primary-600" />
           <span>멤버 관리</span>
-          <span className="ml-4 px-3 py-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full text-sm">
+          <span className="ml-4 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
             총 {members.length}명
           </span>
         </h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-lg transition-all"
+          className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
         >
           <UserPlus className="w-5 h-5" />
           <span>멤버 추가</span>
@@ -173,38 +173,38 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg ${message.includes('✅') ? 'bg-green-600/20 border border-green-500/30 text-green-300' : 'bg-red-600/20 border border-red-500/30 text-red-300'}`}>
+        <div className={`p-4 rounded-lg ${message.includes('✅') ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
           {message}
         </div>
       )}
 
       {showAddForm && (
-        <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 p-6">
-          <h3 className="text-xl font-bold mb-4 text-white flex items-center space-x-2">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+          <h3 className="text-xl font-bold mb-4 text-gray-900 flex items-center space-x-2">
             <Plus className="w-6 h-6" />
             <span>새 멤버 추가</span>
           </h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-purple-300 text-sm font-medium mb-2">소환사명</label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">소환사명</label>
                 <input
                   type="text"
                   value={formData.summonerName}
                   onChange={(e) => setFormData({...formData, summonerName: e.target.value})}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
-                  className="w-full px-4 py-2 bg-black/40 border border-purple-500/50 rounded-lg text-white placeholder-purple-300 focus:border-purple-400 focus:outline-none"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none transition"
                   placeholder="예: Hide on bush"
                 />
               </div>
               <div>
-                <label className="block text-purple-300 text-sm font-medium mb-2">태그</label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">태그</label>
                 <input
                   type="text"
                   value={formData.tagLine}
                   onChange={(e) => setFormData({...formData, tagLine: e.target.value})}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
-                  className="w-full px-4 py-2 bg-black/40 border border-purple-500/50 rounded-lg text-white placeholder-purple-300 focus:border-purple-400 focus:outline-none"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none transition"
                   placeholder="예: KR1"
                 />
               </div>
@@ -213,13 +213,13 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
               <button
                 onClick={handleAddMember}
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50"
+                className="flex-1 bg-primary-600 hover:bg-primary-700 px-6 py-2 rounded-lg text-white font-medium disabled:opacity-50 transition shadow-sm"
               >
                 {loading ? '추가 중...' : '멤버 추가'}
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="px-6 py-2 bg-gray-600/50 hover:bg-gray-600/70 rounded-lg text-white font-medium"
+                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition"
               >
                 취소
               </button>
@@ -228,38 +228,38 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
         </div>
       )}
 
-      <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/30 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-purple-900/50">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">소환사명</th>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">선호 포지션</th>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">회피 포지션</th>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">레벨</th>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">솔로랭크</th>
-                <th className="px-6 py-4 text-left text-purple-200 font-semibold">내전 기록</th>
-                <th className="px-6 py-4 text-center text-purple-200 font-semibold">관리</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">소환사명</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">선호 포지션</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">회피 포지션</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">레벨</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">솔로랭크</th>
+                <th className="px-6 py-4 text-left text-gray-700 font-semibold">내전 기록</th>
+                <th className="px-6 py-4 text-center text-gray-700 font-semibold">관리</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-purple-500/20">
+            <tbody className="divide-y divide-gray-200">
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-purple-300">
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                     등록된 멤버가 없습니다. 멤버를 추가해주세요!
                   </td>
                 </tr>
               ) : (
                 members.map((member) => (
-                  <tr key={member.id} className="hover:bg-purple-800/20 transition-colors">
+                  <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-white">{member.summoner_name}</div>
-                      <div className="text-sm text-purple-300">#{member.tag_line}</div>
+                      <div className="font-semibold text-gray-900">{member.summoner_name}</div>
+                      <div className="text-sm text-gray-500">#{member.tag_line}</div>
                     </td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => togglePositionDropdown(member.id)}
-                        className="flex items-center gap-1 px-3 py-1 bg-green-900/20 hover:bg-green-900/30 rounded-lg transition-all border border-green-500/30"
+                        className="flex items-center gap-1 px-3 py-1 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200"
                       >
                         {member.preferred_positions?.length > 0 ? (
                           <div className="flex gap-1">
@@ -271,14 +271,14 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
                             })}
                           </div>
                         ) : (
-                          <span className="text-green-300 text-sm">선택</span>
+                          <span className="text-green-700 text-sm">선택</span>
                         )}
                       </button>
                     </td>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => togglePositionDropdown(member.id)}
-                        className="flex items-center gap-1 px-3 py-1 bg-red-900/20 hover:bg-red-900/30 rounded-lg transition-all border border-red-500/30"
+                        className="flex items-center gap-1 px-3 py-1 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
                       >
                         {member.avoided_positions?.length > 0 ? (
                           <div className="flex gap-1">
@@ -290,25 +290,25 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
                             })}
                           </div>
                         ) : (
-                          <span className="text-red-300 text-sm">선택</span>
+                          <span className="text-red-700 text-sm">선택</span>
                         )}
                       </button>
                     </td>
-                    <td className="px-6 py-4 text-purple-200">{member.summoner_level}</td>
+                    <td className="px-6 py-4 text-gray-700">{member.summoner_level}</td>
                     <td className="px-6 py-4">
                       <div className={`font-semibold ${getTierColor(member.solo_tier)}`}>
                         {member.solo_tier || 'UNRANKED'} {member.solo_rank}
                       </div>
-                      <div className="text-sm text-purple-300">{member.solo_lp || 0} LP</div>
+                      <div className="text-sm text-gray-500">{member.solo_lp || 0} LP</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-white">{member.wins || 0}승 {member.losses || 0}패</div>
-                      <div className="text-sm text-purple-300">레이팅: {member.rating || 0}</div>
+                      <div className="text-gray-900">{member.wins || 0}승 {member.losses || 0}패</div>
+                      <div className="text-sm text-gray-500">레이팅: {member.rating || 0}</div>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleDeleteMember(member.id, member.summoner_name)}
-                        className="text-red-400 hover:text-red-300"
+                        className="text-red-500 hover:text-red-700 transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -322,23 +322,23 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
       </div>
 
       {/* 포지션 선택 모달 */}
-      {Object.keys(expandedPositions).map(memberId => 
+      {Object.keys(expandedPositions).map(memberId =>
         expandedPositions[memberId] && (
-          <div 
+          <div
             key={memberId}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => setExpandedPositions({})}
           >
-            <div 
-              className="bg-gradient-to-br from-gray-900 to-black border-2 border-purple-500 rounded-2xl p-6 max-w-2xl w-full"
+            <div
+              className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-white mb-6 text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
                 {members.find(m => m.id === parseInt(memberId))?.summoner_name} - 포지션 설정
               </h3>
-              
+
               <div className="mb-6">
-                <h4 className="text-green-400 font-bold mb-3">✅ 선호 포지션 (여러 개 선택 가능)</h4>
+                <h4 className="text-green-700 font-bold mb-3">✅ 선호 포지션 (여러 개 선택 가능)</h4>
                 <div className="grid grid-cols-5 gap-3">
                   {POSITIONS.map(pos => {
                     const member = members.find(m => m.id === parseInt(memberId));
@@ -348,19 +348,19 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
                         key={pos.id}
                         onClick={() => handlePositionToggle(parseInt(memberId), pos.id)}
                         className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${
-                          isSelected ? 'bg-green-600 border-2 border-green-400 scale-110' : 'bg-black/40 border-2 border-transparent hover:bg-green-900/30'
+                          isSelected ? 'bg-green-500 border-2 border-green-600 scale-105 shadow-md' : 'bg-gray-100 border-2 border-gray-200 hover:bg-green-100 hover:border-green-300'
                         }`}
                       >
                         <img src={pos.img} alt={pos.name} className="w-12 h-12" />
-                        <span className="text-white text-xs">{pos.name}</span>
+                        <span className={`text-xs font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}>{pos.name}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-              
+
               <div className="mb-4">
-                <h4 className="text-red-400 font-bold mb-3">❌ 회피 포지션 (1개만 선택 가능)</h4>
+                <h4 className="text-red-700 font-bold mb-3">❌ 회피 포지션 (1개만 선택 가능)</h4>
                 <div className="grid grid-cols-5 gap-3">
                   {POSITIONS.map(pos => {
                     const member = members.find(m => m.id === parseInt(memberId));
@@ -370,20 +370,20 @@ function MemberManagement({ members, onRefresh, loading, setLoading }) {
                         key={pos.id}
                         onClick={() => handleAvoidedPositionToggle(parseInt(memberId), pos.id)}
                         className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${
-                          isAvoided ? 'bg-red-600 border-2 border-red-400 scale-110' : 'bg-black/40 border-2 border-transparent hover:bg-red-900/30'
+                          isAvoided ? 'bg-red-500 border-2 border-red-600 scale-105 shadow-md' : 'bg-gray-100 border-2 border-gray-200 hover:bg-red-100 hover:border-red-300'
                         }`}
                       >
                         <img src={pos.img} alt={pos.name} className="w-12 h-12" />
-                        <span className="text-white text-xs">{pos.name}</span>
+                        <span className={`text-xs font-medium ${isAvoided ? 'text-white' : 'text-gray-700'}`}>{pos.name}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-              
+
               <button
                 onClick={() => setExpandedPositions({})}
-                className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white"
+                className="w-full py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 font-medium transition"
               >
                 닫기
               </button>
